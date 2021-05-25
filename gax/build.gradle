@@ -9,7 +9,9 @@ dependencies {
     libraries['maven.org_threeten_threetenbp'],
     libraries['maven.com_google_auth_google_auth_library_oauth2_http'],
     libraries['maven.com_google_api_api_common'],
-    libraries['maven.io_opencensus_opencensus_api']
+    libraries['maven.io_opencensus_opencensus_api'],
+    libraries['maven.io_perfmark_perfmark_api'],
+    libraries['maven.io_perfmark_perfmark_tracewriter']
 
   compileOnly libraries['maven.com_google_auto_value_auto_value']
 

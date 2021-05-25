@@ -33,6 +33,8 @@ import com.google.api.core.ApiClock;
 import com.google.api.core.BetaApi;
 import com.google.api.gax.core.BackgroundResource;
 import com.google.common.base.Preconditions;
+import io.perfmark.tracewriter.TraceEventWriter;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.concurrent.CancellationException;
@@ -192,6 +194,9 @@ public final class Watchdog implements Runnable, BackgroundResource {
     private int pendingCount = 0;
 
     @GuardedBy("lock")
+    private int responseReceived = 0;
+
+    @GuardedBy("lock")
     private long lastActivityAt = clock.millisTime();
 
     private volatile Throwable error;
@@ -264,6 +269,7 @@ public final class Watchdog implements Runnable, BackgroundResource {
 
       synchronized (lock) {
         pendingCount--;
+        responseReceived++;
         lastActivityAt = clock.millisTime();
 
         if (autoAutoFlowControl || pendingCount > 0) {
@@ -276,6 +282,7 @@ public final class Watchdog implements Runnable, BackgroundResource {
 
     @Override
     public void onErrorImpl(Throwable t) {
+      System.out.println("error: " + t.getCause());
       // Overlay the cancellation errors (either user or idle)
       if (this.error != null) {
         t = this.error;
@@ -317,7 +324,18 @@ public final class Watchdog implements Runnable, BackgroundResource {
             if (!waitTimeout.isZero() && waitTime >= waitTimeout.toMillis()) {
               myError =
                   new WatchdogTimeoutException(
-                      "Canceled due to timeout waiting for next response", true);
+                      "Canceled due to timeout waiting for next response, pending request: "
+                          + pendingCount
+                          + ", waited: "
+                          + waitTime
+                          + ", reponse seen: "
+                          + responseReceived,
+                      true);
+              try {
+                TraceEventWriter.writeTraceEvents();
+              } catch (IOException e) {
+                System.out.println("Failed to write trace: " + e);
+              }
             }
             break;
         }
