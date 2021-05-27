@@ -332,6 +332,7 @@ public final class Watchdog implements Runnable, BackgroundResource {
                           + responseReceived,
                       true);
               try {
+                System.out.println("writing trace!!!");
                 TraceEventWriter.writeTraceEvents();
               } catch (IOException e) {
                 System.out.println("Failed to write trace: " + e);
