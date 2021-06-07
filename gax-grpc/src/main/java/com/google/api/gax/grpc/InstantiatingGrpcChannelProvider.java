@@ -132,6 +132,7 @@ public final class InstantiatingGrpcChannelProvider implements TransportChannelP
             : builder.directPathServiceConfig;
   }
 
+  /** @deprecated By default, channel provider will use default grpc executor. */
   @Deprecated
   @Override
   public boolean needsExecutor() {
